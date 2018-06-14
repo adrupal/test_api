@@ -29,6 +29,7 @@ class GoodsPostRequest extends FormRequest
             'cn_title' => 'required|string|max:255',
             'price' => 'required',
             'market_price' => 'required',
+            'image'=>'image'
         ];
     }
 }

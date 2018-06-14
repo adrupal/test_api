@@ -20,7 +20,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 $api = app('Dingo\Api\Routing\Router');
 $api->version('v1', function ($api) {
-    $api->group(['namespace'=>'App\Api\Controllers', 'prefix' => 'v1',], function($api){
+    $api->group(['namespace'=>'App\Api\Controllers', 'prefix' => '',], function($api){
 
 
         $api->group(['prefix' => '', 'middleware'=>[]], function($api){

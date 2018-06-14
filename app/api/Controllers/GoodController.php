@@ -3,9 +3,11 @@
 namespace App\Api\Controllers;
 
 use App\Api\Transformers\GoodTransformer;
+use App\File;
 use App\Good;
 use App\Http\Requests\GoodsPostRequest;
 use Illuminate\Http\Request;
+use Storage;
 
 class GoodController extends BaseController
 {
@@ -165,6 +167,22 @@ class GoodController extends BaseController
 
     function store(GoodsPostRequest $request){
         $good=Good::create($request->all());
+        if ($request->hasFile('image')) {
+            $file=$request->file('image');
+            $time=time();
+            $filename=$time.rand(1000, 9999).'.'.$file->getClientOriginalExtension();
+            $uri=date('Ym', $time).'/'.$filename;
+            Storage::put($uri, file_get_contents($file->getRealPath()));
+            $image=File::create([
+                'uid' => $request->get('uid'),
+                'type'=>'good',
+                'entity_id'=>$good->id,
+                'filename' => $filename,
+                'uri'=>$uri,
+                'filemime'=>$file->getMimeType(),
+                'filesize'=>$file->getSize(),
+            ]);
+        }
         return  $this->response->item($good, new GoodTransformer)->setStatusCode(200);
     }
 

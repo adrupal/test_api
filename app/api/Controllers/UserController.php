@@ -23,7 +23,7 @@ class UserController extends BaseController
      *     tags={"User"},
      *     @SWG\Parameter(
      *         in="formData",
-     *         name="username",
+     *         name="name",
      *         type="string",
      *         description="Username must be unique.",
      *         required=true,
@@ -66,7 +66,7 @@ class UserController extends BaseController
      *     tags={"User"},
      *     @SWG\Parameter(
      *         in="formData",
-     *         name="email",
+     *         name="name",
      *         type="string",
      *         description="User email.",
      *         required=true,
