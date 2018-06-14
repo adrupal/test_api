@@ -2,9 +2,10 @@
 
 namespace App\Api\Controllers;
 
+use App\Api\Transformers\GoodTransformer;
 use App\Good;
+use App\Http\Requests\GoodsPostRequest;
 use Illuminate\Http\Request;
-use DB;
 
 class GoodController extends BaseController
 {
@@ -157,66 +158,19 @@ class GoodController extends BaseController
 
 
 
-    function lists(Request $request){
-        $goods=Good::all();
-        return array('message'=>'success', 'data'=>$goods, 'status_code'=>200);
+    function index(Request $request){
+        $good = Good::paginate(20);
+        return $this->response->paginator($good, new GoodTransformer)->setStatusCode(200);
     }
 
-    function create(Request $request){
-        if(!$request->brand_id){
-            return array('message'=>'brand_id require', 'status_code'=>203);
-        }
-
-        if(!$request->en_title){
-            return array('message'=>'en_title require', 'status_code'=>203);
-        }
-
-        if(!$request->cn_title){
-            return array('message'=>'cn_title require', 'status_code'=>203);
-        }
-
-        if(!$request->price){
-            return array('message'=>'price require', 'status_code'=>203);
-        }
-
-        if(!$request->market_price){
-            return array('message'=>'market_price require', 'status_code'=>203);
-        }
-
-        if(!$request->image1){
-            return array('message'=>'image1 require', 'status_code'=>203);
-        }
-
-        $good=Good::create([
-            'brand_id'=>intval($request->brand_id),
-            'category_id'=>strval($request->category_id),
-            'en_title'=>$request->en_title,
-            'cn_title'=>$request->cn_title,
-            'price'=>$request->price,
-            'market_price'=>$request->market_price,
-            'image1'=>$request->image1,
-            'weight'=>intval($request->weight),
-            'shipping_fee'=>strval($request->shipping_fee),
-            'description'=>strval($request->description),
-            'image2'=>intval($request->image2),
-            'image3'=>intval($request->image3),
-            'image4'=>intval($request->image4),
-        ]);
-
-        return array('message'=>'success', 'status_code'=>200);
+    function store(GoodsPostRequest $request){
+        $good=Good::create($request->all());
+        return  $this->response->item($good, new GoodTransformer)->setStatusCode(200);
     }
 
-    function show(Request $request){
-        if(!$request->id){
-            return array('message'=>'id require', 'status_code'=>203);
-        }
-
-        $good=Good::find(intval($request->id));
-        if(!$good){
-            return array('message'=>'not found', 'status_code'=>404);
-        }
-
-        return array('message'=>'success', 'data'=>$good, 'status_code'=>200);
+    function show($id){
+        $good = Good::findOrFail($id);
+        return $this->response->item($good, new GoodTransformer);
     }
 
 }

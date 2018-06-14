@@ -13,8 +13,6 @@ use Illuminate\Http\Request;
 |
 */
 
-
-
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -22,27 +20,28 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 $api = app('Dingo\Api\Routing\Router');
 $api->version('v1', function ($api) {
-    $api->group(['namespace'=>'App\Api\Controllers'], function($api){
+    $api->group(['namespace'=>'App\Api\Controllers', 'prefix' => 'v1',], function($api){
 
 
         $api->group(['prefix' => '', 'middleware'=>[]], function($api){
-            $api->post('auth/signUp', 'UserController@signUp');
-            $api->post('auth/login', 'UserController@login');
-            $api->get('goods', 'GoodController@lists');
+            $api->post('register', 'UserController@register');
+            $api->post('login', 'UserController@login');
+
+            $api->get('goods', 'GoodController@index');
             $api->get('goods/{id}', 'GoodController@show');
         });
 
         $api->group(['prefix' => '', 'middleware'=>['token']], function($api){
-            $api->post('auth/logout', 'UserController@logout');
-            $api->post('auth/userInfo', 'UserController@userInfo');
-            $api->post('goods', 'GoodController@create');
+            $api->post('logout', 'UserController@logout');
+            $api->get('user', 'UserController@loginUser');
 
-            $api->post('addresses/add', 'AddressesController@add');
-            $api->put('addresses/updateAddr', 'AddressesController@updateAddr');
-            $api->post('addresses/getAddr', 'AddressesController@getAddr');
-            $api->get('addresses/allDeliveryAddr', 'AddressesController@allDeliveryAddr');
-            $api->get('addresses/getAllSenderAddr', 'AddressesController@getAllSenderAddr');
-            $api->delete('addresses/delete', 'AddressesController@delete');
+            $api->post('goods', 'GoodController@store');
+
+            $api->post('addresses', 'AddressesController@store');
+            $api->put('addresses', 'AddressesController@update');
+            $api->get('addresses/{id}', 'AddressesController@show');
+            $api->delete('addresses', 'AddressesController@delete');
+            $api->get('addresses/type/{id}', 'AddressesController@index');
         });
 
 

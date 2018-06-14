@@ -31,11 +31,11 @@ class VerifyTokenMiddleware
         }
 
         if(!$uid){
-            return array('message'=>'login first', 'status_code'=>403);
+            return array('message'=>'No Login', 'status_code'=>403);
         }
         $user = User::find($uid);
         if(!$user){
-            return array('message'=>'user not found', 'status_code'=>404);
+            return array('message'=>'Not Found', 'status_code'=>404);
         }
 
         $request->attributes->add(['uid'=>$uid, 'user'=>$user]);

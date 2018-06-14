@@ -67,8 +67,8 @@
 
 <div id="swagger-ui"></div>
 
-<script src="https://crm-dev.kungfuenglish.com/api-docs/swagger-ui-bundle.js"> </script>
-<script src="https://crm-dev.kungfuenglish.com/api-docs/swagger-ui-standalone-preset.js"> </script>
+<script src="/js/swagger-ui-bundle.js"> </script>
+<script src="/js/swagger-ui-standalone-preset.js"> </script>
 <script>
 window.onload = function() {
   // Build a system

@@ -3,13 +3,17 @@
 namespace App\Api\Controllers;
 
 use App\Address;
+use App\Api\Transformers\AddressTransformer;
+use App\Http\Requests\AddressesGetRequest;
+use App\Http\Requests\AddressesPostRequest;
+use App\Http\Requests\AddressesPutRequest;
 use Illuminate\Http\Request;
 
 class AddressesController extends BaseController
 {
     /**
      * @SWG\Post(
-     *     path="/addresses/add",
+     *     path="/addresses",
      *     description="登陆用户添加收件／发件人地址",
      *     operationId="api.dashboard.index",
      *     produces={"application/json"},
@@ -108,7 +112,7 @@ class AddressesController extends BaseController
      *     )
      * ),
      * @SWG\Put(
-     *     path="/addresses/updateAddr",
+     *     path="/addresses",
      *     description="更新登陆用户指定地址信息",
      *     operationId="api.dashboard.index",
      *     produces={"application/json"},
@@ -213,8 +217,8 @@ class AddressesController extends BaseController
      *         description="Unauthorized action.",
      *     )
      * ),
-     *@SWG\Post(
-     *     path="/addresses/getAddr",
+     *@SWG\Get(
+     *     path="/addresses/{id}",
      *     description="获取登陆用户指定地址",
      *     operationId="api.dashboard.index",
      *     produces={"application/json"},
@@ -236,11 +240,18 @@ class AddressesController extends BaseController
      *     )
      * ),
      *@SWG\Get(
-     *     path="/addresses/allDeliveryAddr",
+     *     path="/addresses/type/{id}",
      *     description="获取登陆用户的所有收件地址",
      *     operationId="api.dashboard.index",
      *     produces={"application/json"},
      *     tags={"Address"},
+     *     @SWG\Parameter(
+     *         in="formData",
+     *         name="type_id",
+     *         type="integer",
+     *         description="地址类型id 1:收件地址  2:发件地址 0:全部地址" ,
+     *         required=true,
+     *     ),
      *     @SWG\Response(
      *         response=200,
      *         description="Dashboard overview."
@@ -250,24 +261,8 @@ class AddressesController extends BaseController
      *         description="Unauthorized action.",
      *     )
      * ),
-     * @SWG\Get(
-     *     path="/addresses/getAllSenderAddr",
-     *     description="获取登陆用户的所有发件人地址",
-     *     operationId="api.dashboard.index",
-     *     produces={"application/json"},
-     *     tags={"Address"},
-     *     @SWG\Response(
-     *         response=200,
-     *         description="Dashboard overview."
-     *     ),
-     *     @SWG\Response(
-     *         response=401,
-     *         description="Unauthorized action.",
-     *     )
-     * ),
-     *
      * @SWG\Delete(
-     *     path="/addresses/delete",
+     *     path="/addresses",
      *     description="删除登陆用户指定的地址",
      *     operationId="api.dashboard.index",
      *     produces={"application/json"},
@@ -293,135 +288,44 @@ class AddressesController extends BaseController
 
 
 
-    function add(Request $request){
-        if(!isset($request->type)){
-            return array('message'=>'type require', 'status_code'=>203);
-        }
-
-        if(!in_array($request->type, array(0, 1))){
-            return array('message'=>'type require 0 or 1', 'status_code'=>203);
-        }
-
-        if(!$request->mobile){
-            return array('message'=>'mobile require', 'status_code'=>203);
-        }
-
-
-        if(!$request->username){
-            return array('message'=>'username require', 'status_code'=>203);
-        }
-
-        if(!$request->country){
-            return array('message'=>'country require', 'status_code'=>203);
-        }
-
-        if(!$request->state){
-            return array('message'=>'state require', 'status_code'=>203);
-        }
-
-        if(!$request->city){
-            return array('message'=>'city require', 'status_code'=>203);
-        }
-
-        if(!$request->address1){
-            return array('message'=>'address1 require', 'status_code'=>203);
-        }
-
-        $address=Address::create([
-            'type'=>$request->type,
-            'uid'=>$request->get('uid'),
-            'mobile'=>$request->mobile,
-            'username'=>$request->username,
-            'country'=>$request->country,
-            'state'=>$request->state,
-            'city'=>$request->city,
-            'district'=>strval($request->district),
-            'address1'=>$request->address1,
-            'address2'=>strval($request->address2),
-            'apartment'=>strval($request->apartment),
-            'zipCode'=>strval($request->zipCode),
-            'addr_default'=>strval($request->addr_default),
-        ]);
-        return array('message'=>'success', 'status_code'=>200);
+    function store(AddressesPostRequest $request){
+        $request['uid']=$request->get('uid');
+        $address=Address::create($request->all());
+        return  $this->response->item($address, new AddressTransformer)->setStatusCode(200);
     }
 
 
 
-    function updateAddr(Request $request){
-
-        if(!$request->address_id){
-            return array('message'=>'address_id require', 'status_code'=>203);
-        }
-
-        if(!Address::where('uid', $request->get('uid'))->where('id', $request->address_id)->first()){
-            return array('message'=>'not found', 'status_code'=>404);
-        }
-
-        $fields=array(
-            'type',
-            'uid',
-            'mobile',
-            'username',
-            'country',
-            'state',
-            'city',
-            'district',
-            'address1',
-            'address2',
-            'apartment',
-            'zipCode',
-            'addr_default',
-        );
-
-        $update=array();
-        foreach ($fields as $field){
-            if(isset($request->$field))
-                $update[$field]=$request->$field;
-        }
-
-        if($update){
-            Address::where('id', $request->address_id)->update($update);
-        }
-        return array('message'=>'success', 'status_code'=>200);
+    function update(AddressesPutRequest $request){
+        Address::where('id', $request->id)->where('uid', $request->get('uid'))->update($request->all());
+        $address=Address::findOrFail($request->id);
+        return $this->response->item($address, new AddressTransformer);
     }
 
 
 
-    function getAddr(Request $request){
-        if(!$request->address_id){
-            return array('message'=>'address_id require', 'status_code'=>203);
-        }
-
-        $address=Address::where('uid', $request->get('uid'))->where('id', $request->address_id)->first();
+    function show(Request $request, $address_id){
+        $address=Address::where('uid', $request->get('uid'))->where('id', $address_id)->first();
         if(!$address){
-            return array('message'=>'not found', 'status_code'=>404);
+            return $this->response->errorNotFound();
         }
-        return array('message'=>'success', 'data'=>$address, 'status_code'=>200);
+        return $this->response->item($address, new AddressTransformer);
     }
 
 
-    function allDeliveryAddr(Request $request){
-        $addresses=Address::where('uid', $request->get('uid'))->where('type', 0)->get();
-        return array('message'=>'success', 'data'=>$addresses, 'status_code'=>200);
+    function index(Request $request, $type){
+        $addresses=Address::where('uid', $request->get('uid'));
+        if($type){
+            $addresses->where('type', $type);
+        }
+        $addresses=$addresses->paginate(20);
+        return $this->response->paginator($addresses, new AddressTransformer)->setStatusCode(200);
     }
 
-    function getAllSenderAddr(Request $request){
-        $addresses=Address::where('uid', $request->get('uid'))->where('type', 1)->get();
-        return array('message'=>'success', 'data'=>$addresses, 'status_code'=>200);
-    }
 
-
-    function delete(Request $request){
-        if(!$request->address_id){
-            return array('message'=>'address_id require', 'status_code'=>203);
-        }
-
-        $address=Address::where('uid', $request->get('uid'))->where('id', $request->address_id)->first();
-        if(!$address){
-            return array('message'=>'not found', 'status_code'=>404);
-        }
+    function delete(AddressesGetRequest $request){
         Address::where('uid', $request->get('uid'))->where('id', $request->address_id)->delete();
-        return array('message'=>'success', 'status_code'=>200);
+        return array('message'=>'ok', 'status_code'=>200);
     }
 
 }
